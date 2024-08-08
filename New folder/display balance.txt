@@ -1,0 +1,54 @@
+void displaybalance(SQLHANDLE& sqlConnectionHandle, wstring& columnName, wstring& columnValue) {
+	// Construct the SQL query dynamically based on user input
+	wstring selectSQL = L"SELECT * FROM `accountmgt` WHERE `" + columnName + L"` = ?";
+
+	SQLHANDLE sqlStatementHandle;
+	SQLRETURN retcode;
+
+	// Allocate statement handle
+	SQLAllocHandle(SQL_HANDLE_STMT, sqlConnectionHandle, &sqlStatementHandle);
+
+	// Prepare the SQL statement
+	retcode = SQLPrepareW(sqlStatementHandle, (SQLWCHAR*)selectSQL.c_str(), SQL_NTS);
+	error();
+
+	// Bind parameter to the statement
+	SQLLEN valueLength = SQL_NTS;
+	retcode = SQLBindParameter(sqlStatementHandle, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)columnValue.c_str(), columnValue.length() * sizeof(wchar_t), &valueLength);
+	error();
+
+	// Execute the SQL statement
+	executeSQLStatement(sqlStatementHandle);
+
+	// Fetch and display results
+	SQLLEN accountnumberLength, accountsmtLength;
+	SQLINTEGER  pincode{};
+	wchar_t  accountsmt[256]{}, accountnumber[256]{};
+
+	while (SQLFetch(sqlStatementHandle) == SQL_SUCCESS) {
+
+
+		SQLGetData(sqlStatementHandle, 1, SQL_C_WCHAR, accountnumber, sizeof(accountnumber), &accountnumberLength);
+		SQLGetData(sqlStatementHandle, 2, SQL_C_LONG, &pincode, sizeof(pincode), NULL);
+		SQLGetData(sqlStatementHandle, 3, SQL_C_WCHAR, accountsmt, sizeof(accountsmt), &accountsmtLength);
+		SQLGetData(sqlStatementHandle, 4, SQL_C_LONG, &balance, sizeof(balance), NULL);
+		wcout << left << setw(20) << L"balance: " << balance << endl;
+		//<< left << setw(20) << L"Account Type: " << accountnumber << endl;
+	}
+
+	// Free statement handle
+	SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+};
+
+
+
+
+
+
+int main(){
+
+wstring columnName = L"accountnumber"; // example column name
+wstring columnValue = L"SBP1987238"; // example column value
+options.displaybalance(sqlConnectionHandle, columnName, columnValue);
+
+}

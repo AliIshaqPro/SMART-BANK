@@ -1,0 +1,78 @@
+void retrieveDataByPincode(SQLHANDLE& sqlConnectionHandle) {
+	// Prompt user for pincode
+	int pincode;
+	cout << "Enter pincode: ";
+	cin >> pincode;
+
+	// SQL query
+	wstring selectSQL = L"SELECT pi.Name, pi.CNIC, pi.accountnumber, si.savingaccount, si.interestrate, si.insurancedetail "
+		L"FROM personalinformation AS pi "
+		L"JOIN savingsandinsurance AS si ON pi.pincode = si.pincode "
+		L"WHERE pi.pincode = ?";
+
+	// Declare handles and variables
+	SQLHANDLE sqlStatementHandle;
+	SQLRETURN retcode;
+
+	// Allocate statement handle
+	SQLAllocHandle(SQL_HANDLE_STMT, sqlConnectionHandle, &sqlStatementHandle);
+
+	// Prepare the SQL statement
+	retcode = SQLPrepareW(sqlStatementHandle, (SQLWCHAR*)selectSQL.c_str(), SQL_NTS);
+	if (retcode != SQL_SUCCESS) {
+		cout << "Error preparing SQL statement." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+		return;
+	}
+
+	// Bind parameter to the statement
+	retcode = SQLBindParameter(sqlStatementHandle, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &pincode, 0, NULL);
+	if (retcode != SQL_SUCCESS) {
+		cout << "Error binding parameter." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+		return;
+	}
+
+	// Execute the SQL statement
+	retcode = SQLExecute(sqlStatementHandle);
+	if (retcode != SQL_SUCCESS) {
+		cout << "Error executing SQL statement." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+		return;
+	}
+
+	// Fetch and display results
+	SQLWCHAR name[256]{}, CNIC[256]{}, accountnumber[256]{}, insurancedetail[512]{};
+	SQLINTEGER savingaccount{};
+	SQLREAL interestrate{};
+	while (SQLFetch(sqlStatementHandle) == SQL_SUCCESS) {
+		SQLGetData(sqlStatementHandle, 1, SQL_C_WCHAR, name, sizeof(name), NULL);
+		SQLGetData(sqlStatementHandle, 2, SQL_C_WCHAR, CNIC, sizeof(CNIC), NULL);
+		SQLGetData(sqlStatementHandle, 3, SQL_C_WCHAR, accountnumber, sizeof(accountnumber), NULL);
+		SQLGetData(sqlStatementHandle, 4, SQL_C_SLONG, &savingaccount, sizeof(savingaccount), NULL);
+		SQLGetData(sqlStatementHandle, 5, SQL_C_FLOAT, &interestrate, sizeof(interestrate), NULL);
+		SQLGetData(sqlStatementHandle, 6, SQL_C_WCHAR, insurancedetail, sizeof(insurancedetail), NULL);
+
+		wcout << L"Name: " << name << endl;
+		wcout << L"CNIC: " << CNIC << endl;
+		wcout << L"Account Number: " << accountnumber << endl;
+		cout << "Saving Account: " << savingaccount << endl;
+		cout << "Interest Rate: " << interestrate << endl;
+		wcout << L"Insurance Detail: " << insurancedetail << endl;
+	}
+
+	// Free statement handle
+	SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+};
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+options.retrieveDataByPincode(sqlConnectionHandle);

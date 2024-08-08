@@ -1,0 +1,63 @@
+
+	void insertLoanData(SQLHANDLE& sqlConnectionHandle, int loan, const wstring& loanhistory, const wstring& loanstatus, int pincode, float loaninterestrate) {
+    // Construct the SQL query dynamically based on the input data
+    wstring insertSQL = L"INSERT INTO loans (loan, loanhistory, loanstatus, pincode, loaninterestrate) VALUES (?, ?, ?, ?, ?)";
+
+    SQLHANDLE sqlStatementHandle;
+    SQLRETURN retcode;
+
+    // Allocate statement handle
+    SQLAllocHandle(SQL_HANDLE_STMT, sqlConnectionHandle, &sqlStatementHandle);
+
+    // Prepare the SQL statement
+    SQLPrepareW(sqlStatementHandle, (SQLWCHAR*)insertSQL.c_str(), SQL_NTS);
+
+    // Bind parameters to the statement
+    SQLLEN loanLength = sizeof(int);
+    SQLLEN loanhistoryLength = loanhistory.length() * sizeof(wchar_t);
+    SQLLEN loanstatusLength = loanstatus.length() * sizeof(wchar_t);
+    SQLLEN pincodeLength = sizeof(int);
+    SQLLEN loaninterestrateLength = sizeof(float);
+
+    SQLBindParameter(sqlStatementHandle, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &loan, 0, &loanLength);
+    SQLBindParameter(sqlStatementHandle, 2, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)loanhistory.c_str(), loanhistoryLength, &loanhistoryLength);
+    SQLBindParameter(sqlStatementHandle, 3, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)loanstatus.c_str(), loanstatusLength, &loanstatusLength);
+    SQLBindParameter(sqlStatementHandle, 4, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &pincode, 0, &pincodeLength);
+    SQLBindParameter(sqlStatementHandle, 5, SQL_PARAM_INPUT, SQL_C_FLOAT, SQL_FLOAT, 0, 0, &loaninterestrate, 0, &loaninterestrateLength);
+
+    // Execute the SQL statement
+    SQLExecute(sqlStatementHandle);
+
+    // Free statement handle
+    SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+}
+
+
+
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////
+
+
+
+// Sample data
+	int loan = 1001;
+    wstring loanhistory = L"First Loan";
+    wstring loanstatus = L"Approved";
+    int pincode = 123456;
+    float loaninterestrate = 5.5f;
+
+    // Call the function to insert loan data
+    insertLoanData(sqlConnectionHandle, loan, loanhistory, loanstatus, pincode, loaninterestrate);
+
+
+
+
+
+
+
+

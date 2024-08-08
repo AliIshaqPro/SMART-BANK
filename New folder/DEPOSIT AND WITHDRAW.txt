@@ -1,0 +1,148 @@
+	void depositAmount(SQLHANDLE& sqlConnectionHandle, const wstring& accountNumber, int pincode, double amount) {
+		SQLHANDLE sqlStatementHandle;
+		SQLAllocHandle(SQL_HANDLE_STMT, sqlConnectionHandle, &sqlStatementHandle);
+
+		double currentBalance = 0;
+		wstring selectQuery = L"SELECT balance FROM accountmgt WHERE accountnumber = ? AND pincode = ?";
+		SQLPrepare(sqlStatementHandle, (SQLWCHAR*)selectQuery.c_str(), SQL_NTS);
+		SQLBindParameter(sqlStatementHandle, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 40, 0, (SQLWCHAR*)accountNumber.c_str(), accountNumber.length() * sizeof(wchar_t), NULL);
+		SQLBindParameter(sqlStatementHandle, 2, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &pincode, sizeof(SQLINTEGER), NULL);
+
+		SQLRETURN retcode = SQLExecute(sqlStatementHandle);
+		if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+			SQLBindCol(sqlStatementHandle, 1, SQL_C_DOUBLE, &currentBalance, sizeof(currentBalance), NULL);
+			if (SQLFetch(sqlStatementHandle) == SQL_NO_DATA) {
+				wcout << L"Account not found or incorrect pincode." << endl;
+				SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+				return;
+			}
+		}
+		else {
+			wcout << L"Error executing select query." << endl;
+			showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+			SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+			return;
+		}
+		SQLFreeStmt(sqlStatementHandle, SQL_CLOSE);
+
+		double newBalance = currentBalance + amount;
+
+		wstring updateQuery = L"UPDATE accountmgt SET balance = ? WHERE accountnumber = ? AND pincode = ?";
+		SQLPrepare(sqlStatementHandle, (SQLWCHAR*)updateQuery.c_str(), SQL_NTS);
+		SQLBindParameter(sqlStatementHandle, 1, SQL_PARAM_INPUT, SQL_C_DOUBLE, SQL_DOUBLE, 0, 0, &newBalance, sizeof(newBalance), NULL);
+		SQLBindParameter(sqlStatementHandle, 2, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 40, 0, (SQLWCHAR*)accountNumber.c_str(), accountNumber.length() * sizeof(wchar_t), NULL);
+		SQLBindParameter(sqlStatementHandle, 3, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &pincode, sizeof(SQLINTEGER), NULL);
+
+		retcode = SQLExecute(sqlStatementHandle);
+		if (retcode != SQL_SUCCESS && retcode != SQL_SUCCESS_WITH_INFO) {
+			wcout << L"Error updating balance." << endl;
+			showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+			SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+			return;
+		}
+		SQLFreeStmt(sqlStatementHandle, SQL_CLOSE);
+
+		int transactionId = rand(); // Generate transactionId as integer
+
+		wstring transactionDetail = L"Deposit";
+		wstring insertQuery = L"INSERT INTO transactions (transactionid, transactiondetail, pincode, accountnumber) VALUES (?, ?, ?, ?)";
+		SQLPrepare(sqlStatementHandle, (SQLWCHAR*)insertQuery.c_str(), SQL_NTS);
+		SQLBindParameter(sqlStatementHandle, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &transactionId, sizeof(SQLINTEGER), NULL);
+		SQLBindParameter(sqlStatementHandle, 2, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 500, 0, (SQLWCHAR*)transactionDetail.c_str(), transactionDetail.length() * sizeof(wchar_t), NULL);
+		SQLBindParameter(sqlStatementHandle, 3, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &pincode, sizeof(SQLINTEGER), NULL);
+		SQLBindParameter(sqlStatementHandle, 4, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 40, 0, (SQLWCHAR*)accountNumber.c_str(), accountNumber.length() * sizeof(wchar_t), NULL);
+
+		retcode = SQLExecute(sqlStatementHandle);
+		if (retcode != SQL_SUCCESS && retcode != SQL_SUCCESS_WITH_INFO) {
+			wcout << L"Error inserting transaction." << endl;
+			showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+		}
+		else {
+			wcout << L"Transaction successful. New balance: " << newBalance << endl;
+		}
+
+		SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+	}
+
+
+
+	void WithdrawAmount(SQLHANDLE& sqlConnectionHandle, const wstring& accountNumber, int pincode, double amount) {
+    SQLHANDLE sqlStatementHandle;
+    SQLAllocHandle(SQL_HANDLE_STMT, sqlConnectionHandle, &sqlStatementHandle);
+
+    double currentBalance = 0;
+    wstring selectQuery = L"SELECT balance FROM accountmgt WHERE accountnumber = ? AND pincode = ?";
+    SQLPrepare(sqlStatementHandle, (SQLWCHAR*)selectQuery.c_str(), SQL_NTS);
+    SQLBindParameter(sqlStatementHandle, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 40 * sizeof(wchar_t), 0, (SQLWCHAR*)accountNumber.c_str(), accountNumber.length() * sizeof(wchar_t), NULL);
+    SQLBindParameter(sqlStatementHandle, 2, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &pincode, sizeof(SQLINTEGER), NULL);
+
+    SQLRETURN retcode = SQLExecute(sqlStatementHandle);
+    if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+        SQLBindCol(sqlStatementHandle, 1, SQL_C_DOUBLE, &currentBalance, sizeof(currentBalance), NULL);
+        if (SQLFetch(sqlStatementHandle) == SQL_NO_DATA) {
+            wcout << L"Account not found or incorrect pincode." << endl;
+            SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+            return;
+        }
+    }
+    else {
+        wcout << L"Error executing select query." << endl;
+        showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+        SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+        return;
+    }
+    SQLFreeStmt(sqlStatementHandle, SQL_CLOSE);
+
+    double newBalance = currentBalance - amount;
+    if (newBalance < 0) {
+        wcout << L"Insufficient funds for withdrawal." << endl;
+        SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+        return;
+    }
+
+    // Generate transactionid
+    int transactionId = rand(); // Using rand() to generate a random integer
+
+    wstring updateQuery = L"UPDATE accountmgt SET balance = ? WHERE accountnumber = ? AND pincode = ?";
+    SQLPrepare(sqlStatementHandle, (SQLWCHAR*)updateQuery.c_str(), SQL_NTS);
+    SQLBindParameter(sqlStatementHandle, 1, SQL_PARAM_INPUT, SQL_C_DOUBLE, SQL_DOUBLE, 0, 0, &newBalance, sizeof(newBalance), NULL);
+    SQLBindParameter(sqlStatementHandle, 2, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 40 * sizeof(wchar_t), 0, (SQLWCHAR*)accountNumber.c_str(), accountNumber.length() * sizeof(wchar_t), NULL);
+    SQLBindParameter(sqlStatementHandle, 3, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &pincode, sizeof(SQLINTEGER), NULL);
+
+    retcode = SQLExecute(sqlStatementHandle);
+    if (retcode != SQL_SUCCESS && retcode != SQL_SUCCESS_WITH_INFO) {
+        wcout << L"Error updating balance." << endl;
+        showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+    }
+    else {
+        wcout << L"Withdrawal successful. New balance: " << newBalance << endl;
+    }
+
+    SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+}
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+	// Example usage of deposit function
+	wstring accountNumber = L"SBP4"; // Example account number
+	int pincode = 1000; // Example pincode
+	double depositAmount = 100.0; // Example deposit amount
+
+	options.depositAmount(sqlConnectionHandle, accountNumber, pincode, depositAmount);
+
+	// Example usage of withdraw function
+	double withdrawAmount = 50.0; // Example withdrawal amount
+
+	options.WithdrawAmount(sqlConnectionHandle, accountNumber, pincode, withdrawAmount);
+
+	// Close SQL connection and other cleanup if needed
+
+
+/////////////////////////////////////////////////////////////////////////////////

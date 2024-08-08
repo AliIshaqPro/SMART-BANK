@@ -1,0 +1,291 @@
+#include <iostream>
+#include <string>
+#include <limits>
+#include <windows.h>
+#include <sqlext.h>
+#include <sqltypes.h>
+#include <sql.h>
+#include <iomanip> 
+#include <sqlext.h>
+
+using namespace std;
+
+// Function to display SQL error
+void showSQLError(unsigned int handleType, const SQLHANDLE& handle) {
+	SQLWCHAR SQLState[1024];
+	SQLWCHAR message[1024];
+	if (SQL_SUCCESS == SQLGetDiagRec(handleType, handle, 1, SQLState, NULL, message, 1024, NULL))
+		wcerr << L"SQL Error: " << message << L"\nSQL State: " << SQLState << endl;
+}
+bool updateValues(SQLHANDLE& sqlConnectionHandle, wstring& name, wstring& dob, SQLINTEGER idCardNumber, wstring& address, wstring& account_number, wstring& email, wstring& password, SQLINTEGER Balance, SQLINTEGER loan_amount, wstring& account_type) {
+	SQLWCHAR* updateSQL = (SQLWCHAR*)L"UPDATE `customerProfile` SET `Name` = ?, `DateofBirth` = ?, `Address` = ?, `account_number` = ?, `email` = ?, `password` = ?, `balance` = ?, `loan_amount` = ?, `account_type` = ? WHERE `IDcardNumber` = ?";
+	SQLHANDLE sqlStatementHandle;
+	SQLRETURN retcode;
+
+	// Allocate statement handle
+	retcode = SQLAllocHandle(SQL_HANDLE_STMT, sqlConnectionHandle, &sqlStatementHandle);
+	if (retcode != SQL_SUCCESS) {
+		wcerr << L"Failed to allocate statement handle." << endl;
+		return false;
+	}
+
+	// Prepare the SQL statement
+	retcode = SQLPrepareW(sqlStatementHandle, updateSQL, SQL_NTS);
+	if (retcode != SQL_SUCCESS) {
+		wcerr << L"Failed to prepare SQL statement for update." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+		SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+		return false;
+	}
+
+	// Bind parameters to the statement
+	SQLLEN nameLength = SQL_NTS;
+	SQLLEN dobLength = SQL_NTS;
+	SQLLEN addressLength = SQL_NTS;
+	SQLLEN account_numberLength = SQL_NTS;
+	SQLLEN emailLength = SQL_NTS;
+	SQLLEN passwordLength = SQL_NTS;
+	SQLLEN account_typeLength = SQL_NTS;
+
+	retcode = SQLBindParameter(sqlStatementHandle, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)name.c_str(), name.length() * sizeof(wchar_t), &nameLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 2, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)dob.c_str(), dob.length() * sizeof(wchar_t), &dobLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 3, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)address.c_str(), address.length() * sizeof(wchar_t), &addressLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 4, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)account_number.c_str(), account_number.length() * sizeof(wchar_t), &account_numberLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 5, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)email.c_str(), email.length() * sizeof(wchar_t), &emailLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 6, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)password.c_str(), password.length() * sizeof(wchar_t), &passwordLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 7, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &Balance, 0, NULL);
+	retcode = SQLBindParameter(sqlStatementHandle, 8, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &loan_amount, 0, NULL);
+	retcode = SQLBindParameter(sqlStatementHandle, 9, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)account_type.c_str(), account_type.length() * sizeof(wchar_t), &account_typeLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 10, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &idCardNumber, 0, NULL);
+
+	// Check retcode after each SQLBindParameter call for error handling
+
+	// Execute the SQL statement
+	retcode = SQLExecute(sqlStatementHandle);
+	if (retcode != SQL_SUCCESS) {
+		wcerr << L"Failed to update data in the table." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+		SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+		return false;
+	}
+
+	// Free statement handle
+	SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+	return true;
+}
+
+void displayCustomerProfile(SQLHANDLE& sqlConnectionHandle, wstring& columnName, wstring& columnValue) {
+	// Construct the SQL query dynamically based on user input
+	wstring selectSQL = L"SELECT * FROM `customerprofile` WHERE `" + columnName + L"` = ?";
+
+	SQLHANDLE sqlStatementHandle;
+	SQLRETURN retcode;
+
+	// Allocate statement handle
+	SQLAllocHandle(SQL_HANDLE_STMT, sqlConnectionHandle, &sqlStatementHandle);
+
+	// Prepare the SQL statement
+	retcode = SQLPrepareW(sqlStatementHandle, (SQLWCHAR*)selectSQL.c_str(), SQL_NTS);
+	if (retcode != SQL_SUCCESS) {
+		wcerr << L"Failed to prepare SQL statement for select." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+		SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+		return;
+	}
+
+	// Bind parameter to the statement
+	SQLLEN valueLength = SQL_NTS;
+	retcode = SQLBindParameter(sqlStatementHandle, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)columnValue.c_str(), columnValue.length() * sizeof(wchar_t), &valueLength);
+	if (retcode != SQL_SUCCESS) {
+		wcerr << L"Failed to bind parameter for select." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+		SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+		return;
+	}
+
+	// Execute the SQL statement
+	retcode = SQLExecute(sqlStatementHandle);
+	if (retcode != SQL_SUCCESS) {
+		wcerr << L"Failed to execute SQL statement for select." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+		SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+		return;
+	}
+
+	// Fetch and display results
+	SQLLEN nameLength, dobLength, addressLength, accountnumberLength, emailLength, passwordLength, account_typeLength;
+	SQLINTEGER idCardNumber{}, balance{}, loan_amount{};
+	wchar_t name[256]{}, dob[256]{}, address[256]{}, account_number[256]{}, email[256]{}, password[256]{}, account_type[256]{};
+	wcout << "Customer Profile Table:" << endl;
+	while (SQLFetch(sqlStatementHandle) == SQL_SUCCESS) {
+		SQLGetData(sqlStatementHandle, 1, SQL_C_WCHAR, name, sizeof(name), &nameLength);
+		SQLGetData(sqlStatementHandle, 2, SQL_C_WCHAR, dob, sizeof(dob), &dobLength);
+		SQLGetData(sqlStatementHandle, 3, SQL_C_LONG, &idCardNumber, sizeof(idCardNumber), NULL);
+		SQLGetData(sqlStatementHandle, 4, SQL_C_WCHAR, address, sizeof(address), &addressLength);
+		SQLGetData(sqlStatementHandle, 5, SQL_C_WCHAR, account_number, sizeof(account_number), &accountnumberLength);
+		SQLGetData(sqlStatementHandle, 6, SQL_C_WCHAR, email, sizeof(email), &emailLength);
+		SQLGetData(sqlStatementHandle, 7, SQL_C_WCHAR, password, sizeof(password), &passwordLength);
+		SQLGetData(sqlStatementHandle, 8, SQL_C_LONG, &balance, sizeof(balance), NULL);
+		SQLGetData(sqlStatementHandle, 9, SQL_C_LONG, &loan_amount, sizeof(loan_amount), NULL);
+		SQLGetData(sqlStatementHandle, 10, SQL_C_WCHAR, account_type, sizeof(account_type), &account_typeLength);
+
+		wcout << left << setw(20) << L"Name: " << name << endl
+			<< left << setw(20) << L"Date of Birth: " << dob << endl
+			<< left << setw(20) << L"ID Card Number: " << idCardNumber << endl
+			<< left << setw(20) << L"Address: " << address << endl
+			<< left << setw(20) << L"Account Number: " << account_number << endl
+			<< left << setw(20) << L"EMAIL: " << email << endl
+			<< left << setw(20) << L"Password: " << password << endl
+			<< left << setw(20) << L"Balance: " << balance << endl
+			<< left << setw(20) << L"Loan Amount: " << loan_amount << endl
+			<< left << setw(20) << L"Account Type: " << account_type << endl;
+	}
+
+	// Free statement handle
+	SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+}
+
+bool insertValues(SQLHANDLE& sqlConnectionHandle, wstring& name, wstring& dob, SQLINTEGER idCardNumber, wstring& address, wstring& account_number, wstring& email, wstring& password, SQLINTEGER Balance, SQLINTEGER loan_amount, wstring& account_type) {
+	SQLWCHAR* insertSQL = (SQLWCHAR*)L"INSERT INTO `customerProfile` (`Name`, `DateofBirth`, `IDcardNumber`, `Address`, `account_number`, `email`, `password`, `balance`,`loan_amount`, `account_type`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	SQLHANDLE sqlStatementHandle;
+	SQLRETURN retcode;
+
+	// Allocate statement handle
+	retcode = SQLAllocHandle(SQL_HANDLE_STMT, sqlConnectionHandle, &sqlStatementHandle);
+	if (retcode != SQL_SUCCESS) {
+		wcerr << L"Failed to allocate statement handle." << endl;
+		return false;
+	}
+
+	// Prepare the SQL statement
+	retcode = SQLPrepareW(sqlStatementHandle, insertSQL, SQL_NTS);
+	if (retcode != SQL_SUCCESS) {
+		wcerr << L"Failed to prepare SQL statement for insert." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+		SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+		return false;
+	}
+
+	// Bind parameters to the statement
+	SQLLEN nameLength = SQL_NTS;
+	SQLLEN dobLength = SQL_NTS;
+	SQLLEN addressLength = SQL_NTS;
+	SQLLEN account_numberLength = SQL_NTS;
+	SQLLEN emailLength = SQL_NTS;
+	SQLLEN passwordLength = SQL_NTS;
+	SQLLEN account_typeLength = SQL_NTS;
+
+	retcode = SQLBindParameter(sqlStatementHandle, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)name.c_str(), name.length() * sizeof(wchar_t), &nameLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 2, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)dob.c_str(), dob.length() * sizeof(wchar_t), &dobLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 3, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &idCardNumber, 0, NULL);
+	retcode = SQLBindParameter(sqlStatementHandle, 4, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)address.c_str(), address.length() * sizeof(wchar_t), &addressLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 5, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)account_number.c_str(), account_number.length() * sizeof(wchar_t), &account_numberLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 6, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)email.c_str(), email.length() * sizeof(wchar_t), &emailLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 7, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)password.c_str(), password.length() * sizeof(wchar_t), &passwordLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 8, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &Balance, 0, NULL);
+	retcode = SQLBindParameter(sqlStatementHandle, 9, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &loan_amount, 0, NULL);
+	retcode = SQLBindParameter(sqlStatementHandle, 10, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)account_type.c_str(), account_type.length() * sizeof(wchar_t), &account_typeLength);
+
+	// Check retcode after each SQLBindParameter call for error handling
+
+	// Execute the SQL statement
+	retcode = SQLExecute(sqlStatementHandle);
+	if (retcode != SQL_SUCCESS) {
+		wcerr << L"Failed to insert data into the table." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+		SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+		return false;
+	}
+
+	// Free statement handle
+	SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+	return true;
+}
+
+
+bool deleteRecordByIDCardNumber(SQLHANDLE& sqlConnectionHandle, SQLINTEGER idCardNumber) {
+	SQLWCHAR* deleteSQL = (SQLWCHAR*)L"DELETE FROM customerProfile WHERE IDCardNumber = ?";
+	SQLHANDLE sqlStatementHandle;
+	SQLRETURN retcode;
+
+	// Allocate statement handle
+	SQLAllocHandle(SQL_HANDLE_STMT, sqlConnectionHandle, &sqlStatementHandle);
+
+	// Prepare the SQL statement
+	retcode = SQLPrepareW(sqlStatementHandle, deleteSQL, SQL_NTS);
+	if (retcode != SQL_SUCCESS) {
+		wcerr << L"Failed to prepare SQL statement for delete." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+		SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+		return false;
+	}
+
+	// Bind parameter to the statement
+	retcode = SQLBindParameter(sqlStatementHandle, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &idCardNumber, 0, NULL);
+	if (retcode != SQL_SUCCESS) {
+		wcerr << L"Failed to bind parameter for delete." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+		SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+		return false;
+	}
+
+	// Execute the SQL statement
+	retcode = SQLExecute(sqlStatementHandle);
+	if (retcode != SQL_SUCCESS) {
+		wcerr << L"Failed to delete data from the table." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+		SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+		return false;
+	}
+
+	// Free statement handle
+	SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+	return true;
+}
+
+int main()
+{
+	//=============================================================================================================
+	 //Connecting with DataBase
+	 //=============================================================================================================
+	 // Declare handles and variables
+	wstring columnName, columnValue;
+	SQLHANDLE sqlEnvHandle;
+	SQLHANDLE sqlConnectionHandle;
+	SQLHANDLE sqlStatementHandle{};
+	SQLRETURN retcode;
+	wstring account_type;
+	int sub_selection_by_customer;
+	int new_user_check;
+	int sub_selection_by_new_customer;
+	int option_selected_by_customer;
+	int new_user = 1;
+	wstring idCardNumberStr{};
+	SQLINTEGER idCardNumberToDelete{};
+	wstring name, dob, address, account_number, email, password;
+	SQLINTEGER idCardNumber{}, Balance{}, loan_amount{};
+	// Initialize handles
+	SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &sqlEnvHandle);
+	SQLSetEnvAttr(sqlEnvHandle, SQL_ATTR_ODBC_VERSION, (SQLPOINTER)SQL_OV_ODBC3, 0);
+	SQLAllocHandle(SQL_HANDLE_DBC, sqlEnvHandle, &sqlConnectionHandle);
+
+	// Connection string
+	SQLWCHAR retconstring[1024];
+	SQLWCHAR* connectionString = (SQLWCHAR*)L"DRIVER={MySQL ODBC 8.4 Unicode Driver};SERVER=localhost;DATABASE=smartbankpakistan;USER=root;PASSWORD=Maasaa229$;OPTION=3;";
+
+	// Connect to the database
+	retcode = SQLDriverConnectW(sqlConnectionHandle, NULL, connectionString, SQL_NTS, retconstring, 1024, NULL, SQL_DRIVER_NOPROMPT);
+
+	// Handle connection result
+	if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+		wcout << L"               Welcome to The Smart Bank Of Pakistan " << endl << endl;
+	}
+	else {
+		cerr << L"Failed to connect to Open \n Please Check Your Network Connection." << endl << endl;
+		showSQLError(SQL_HANDLE_DBC, sqlConnectionHandle);
+	}
+	cout << "Please Select Appropriate Option : " << endl
+		<< "[1] - Existing User "
+		<< endl << "[2] - New User/Create New Account " << endl;
+	
+}

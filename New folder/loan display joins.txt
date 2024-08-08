@@ -1,0 +1,71 @@
+#include <iostream>
+#include <string>
+#include <iomanip>
+#include <sql.h>
+#include <sqlext.h>
+
+using namespace std;
+
+void showLoanInformation(SQLHANDLE& sqlConnectionHandle, const wstring& accountNumber, int pincode) {
+    wstring selectSQL = L"SELECT l.loan, l.loanhistory, l.loanstatus FROM personalinformation pi INNER JOIN loans l ON pi.pincode = l.pincode WHERE pi.accountnumber = ? AND l.pincode = ?";
+
+    SQLHANDLE sqlStatementHandle;
+    SQLRETURN retcode;
+
+    // Allocate statement handle
+    SQLAllocHandle(SQL_HANDLE_STMT, sqlConnectionHandle, &sqlStatementHandle);
+
+    // Prepare the SQL statement
+    retcode = SQLPrepareW(sqlStatementHandle, (SQLWCHAR*)selectSQL.c_str(), SQL_NTS);
+
+    // Bind parameters to the statement
+    SQLLEN accountNumberLength = accountNumber.length() * sizeof(wchar_t);
+    SQLLEN pincodeLength = sizeof(int);
+
+    SQLBindParameter(sqlStatementHandle, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)accountNumber.c_str(), accountNumberLength, &accountNumberLength);
+    SQLBindParameter(sqlStatementHandle, 2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &pincode, 0, &pincodeLength);
+
+    // Execute the SQL statement
+    retcode = SQLExecute(sqlStatementHandle);
+
+    // Fetch and display results
+    SQLLEN loanLength, loanHistoryLength, loanStatusLength;
+    SQLINTEGER loan;
+    wchar_t loanHistory[256]{}, loanStatus[256]{};
+
+    cout << "Loan Information:" << endl;
+    cout << "-----------------" << endl;
+
+    while (SQLFetch(sqlStatementHandle) == SQL_SUCCESS) {
+        SQLGetData(sqlStatementHandle, 1, SQL_C_LONG, &loan, sizeof(loan), NULL);
+        SQLGetData(sqlStatementHandle, 2, SQL_C_WCHAR, loanHistory, sizeof(loanHistory), &loanHistoryLength);
+        SQLGetData(sqlStatementHandle, 3, SQL_C_WCHAR, loanStatus, sizeof(loanStatus), &loanStatusLength);
+
+        wcout << L"Loan Amount: " << loan << endl;
+        wcout << L"Loan History: " << loanHistory << endl;
+        wcout << L"Loan Status: " << loanStatus << endl;
+    }
+
+    // Free statement handle
+    SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+}
+
+int main() {
+    SQLHANDLE sqlConnectionHandle;
+
+    // Assume SQL connection is established and sqlConnectionHandle is initialized
+
+    wstring accountNumber;
+    int pincode;
+
+    // Get input from user
+    cout << "Enter your account number: ";
+    wcin >> accountNumber;
+    cout << "Enter your pincode: ";
+    cin >> pincode;
+
+    // Show loan information
+    showLoanInformation(sqlConnectionHandle, accountNumber, pincode);
+
+    return 0;
+}

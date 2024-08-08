@@ -1,0 +1,24 @@
+Money Transfer
+Mobile Load 
+Bill Payment
+ATM'
+Saving And Insurances 
+My Account'
+Loan
+Name
+DOB
+CNIC
+Account type
+Password
+PIN code
+Transfer History
+Transaction ID
+Transaction Detail
+Bill Payments
+Transaction History
+Saving Accounts
+Interest Rate
+Insurance Policy Details
+Account  Stament
+Loan History
+Loan Status

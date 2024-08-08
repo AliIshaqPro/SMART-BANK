@@ -1,0 +1,88 @@
+bool updateValues(SQLHANDLE& sqlConnectionHandle, wstring& name, wstring& dob, SQLINTEGER idCardNumber, wstring& accounttype, wstring& password, SQLINTEGER pincode, wstring& accountnumber) {
+	SQLWCHAR* updateSQL = (SQLWCHAR*)L"UPDATE `personalinformation` SET `Name` = ?, `DateofBirth` = ?, `CNIC` = ?, `accounttype` = ?, `password` = ? WHERE `accountnumber` = ? AND `pincode` = ?;";
+
+	SQLHANDLE sqlStatementHandle;
+	SQLRETURN retcode;
+
+	// Allocate statement handle
+	retcode = SQLAllocHandle(SQL_HANDLE_STMT, sqlConnectionHandle, &sqlStatementHandle);
+	if (retcode != SQL_SUCCESS) {
+		wcerr << L"Failed to allocate statement handle." << endl;
+		return false;
+	}
+
+	// Prepare the SQL statement
+	retcode = SQLPrepareW(sqlStatementHandle, updateSQL, SQL_NTS);
+	if (retcode != SQL_SUCCESS) {
+		wcerr << L"Failed to prepare SQL statement for update." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+		SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+		return false;
+	}
+
+	SQLLEN nameLength = SQL_NTS;
+	SQLLEN dobLength = SQL_NTS;
+	SQLLEN idCardNumberStrLength = SQL_NTS;
+	SQLLEN accounttypeLength = SQL_NTS;
+	SQLLEN passwordLength = SQL_NTS;
+	SQLLEN accountnumberLength = SQL_NTS;
+	SQLLEN pincodeLength = SQL_NTS;
+
+	retcode = SQLBindParameter(sqlStatementHandle, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)name.c_str(), name.length() * sizeof(wchar_t), &nameLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 2, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)dob.c_str(), dob.length() * sizeof(wchar_t), &dobLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 3, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)idCardNumberStr.c_str(), idCardNumberStr.length() * sizeof(wchar_t), &idCardNumberStrLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 4, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)accounttype.c_str(), accounttype.length() * sizeof(wchar_t), &accounttypeLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 5, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)password.c_str(), password.length() * sizeof(wchar_t), &passwordLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 6, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)accountnumber.c_str(), accountnumber.length() * sizeof(wchar_t), &accountnumberLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 7, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &pincode, 0, &pincodeLength);
+
+
+	// Check retcode after each SQLBindParameter call for error handling
+
+	// Execute the SQL statement
+	retcode = SQLExecute(sqlStatementHandle);
+	if (retcode != SQL_SUCCESS) {
+		wcerr << L"Failed to update data in the table." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+		SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+		return false;
+	}
+
+	// Free statement handle
+	SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+	return true;
+}
+
+
+
+
+
+
+
+
+
+//=================================================================================
+
+
+/ Sample data to update
+	wstring name = L"John Doe";
+	wstring dob = L"1980-01-01";
+	SQLINTEGER idCardNumber = 123456789;
+	wstring accounttype = L"Savings";
+	wstring password = L"newpassword123";
+	SQLINTEGER pincode = 1357;
+	wstring accountnumber = L"SBP123";
+
+	// Call the update function
+	bool success = options.updateValues(sqlConnectionHandle, name, dob, idCardNumber, accounttype, password, pincode, accountnumber);
+
+	if (success) {
+		wcout << L"Data updated successfully." << endl;
+	}
+	else {
+		wcerr << L"Failed to update data." << endl;
+	}
+
+
+
+//=================================================================================

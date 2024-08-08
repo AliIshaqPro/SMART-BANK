@@ -1,0 +1,46 @@
+
+CREATE TABLE accountmgt (
+    accountnumber VARCHAR(40) NOT NULL PRIMARY KEY,
+    pincode INT NOT NULL,
+    accountsmt VARCHAR(45) NOT NULL,
+    UNIQUE (pincode) -- Adding unique index on pincode
+);
+
+CREATE TABLE personalinformation (
+    Name VARCHAR(40) NOT NULL,
+    dateofbirth DATE NOT NULL,
+    CNIC VARCHAR(45) NOT NULL UNIQUE,
+    accounttype VARCHAR(45) NOT NULL,
+    password VARCHAR(45) NOT NULL,
+    pincode INT NOT NULL,
+    accountnumber VARCHAR(40) NOT NULL,
+    PRIMARY KEY (accountnumber),
+    FOREIGN KEY (accountnumber) REFERENCES accountmgt(accountnumber)
+);
+
+CREATE TABLE transactions (
+    transactionid VARCHAR(50) NOT NULL PRIMARY KEY,
+    transactiondetail VARCHAR(45) NOT NULL,
+    pincode INT NOT NULL,
+    accountnumber VARCHAR(40) NOT NULL,
+    FOREIGN KEY (accountnumber) REFERENCES accountmgt(accountnumber)
+);
+
+CREATE TABLE loans (
+    loan INT NOT NULL PRIMARY KEY,
+    loanhistory VARCHAR(45) NOT NULL,
+    loanstatus VARCHAR(45) NOT NULL,
+    pincode INT NOT NULL,
+    FOREIGN KEY (pincode) REFERENCES accountmgt(pincode)
+);
+
+CREATE TABLE savingsandinsurance (
+    savingaccount INT NOT NULL PRIMARY KEY,
+    interestrate FLOAT NOT NULL,
+    insurancedetail VARCHAR(500) NOT NULL,
+    accountnumber VARCHAR(45) NOT NULL,
+    pincode INT NOT NULL,
+    FOREIGN KEY (accountnumber) REFERENCES accountmgt(accountnumber)
+);
+
+

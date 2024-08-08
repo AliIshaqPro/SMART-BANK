@@ -1,0 +1,58 @@
+void insertTransaction(SQLHANDLE& sqlConnectionHandle, string transactionid, string transactiondetail, int pincode, string accountnumber) {
+	// SQL query
+string insertSQL = "INSERT INTO transactions (transactionid, transactiondetail, pincode, accountnumber) VALUES (?, ?, ?, ?)";
+
+	// Allocate statement handle
+	SQLHANDLE sqlStatementHandle;
+	SQLAllocHandle(SQL_HANDLE_STMT, sqlConnectionHandle, &sqlStatementHandle);
+
+	// Convert the SQL query string to wide-character string
+	wstring insertSQLW = wstring(insertSQL.begin(), insertSQL.end());
+
+	// Prepare the SQL statement
+	SQLRETURN retcode = SQLPrepareW(sqlStatementHandle, (SQLWCHAR*)insertSQLW.c_str(), SQL_NTS);
+	if (retcode != SQL_SUCCESS) {
+		cout << "Error preparing SQL statement." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+		SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+		return;
+	}
+
+
+	// Bind parameters to the statement
+	retcode = SQLBindParameter(sqlStatementHandle, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 20, 0, (SQLCHAR*)transactionid.c_str(), transactionid.length(), NULL);
+	
+	retcode = SQLBindParameter(sqlStatementHandle, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 500, 0, (SQLCHAR*)transactiondetail.c_str(), transactiondetail.length(), NULL);
+	
+	retcode = SQLBindParameter(sqlStatementHandle, 3, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &pincode, 0, NULL);
+	
+	retcode = SQLBindParameter(sqlStatementHandle, 4, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 20, 0, (SQLCHAR*)accountnumber.c_str(), accountnumber.length(), NULL);
+	
+
+	// Execute the SQL statement
+	retcode = SQLExecute(sqlStatementHandle);
+	if (retcode != SQL_SUCCESS) {
+		cout << "Error executing SQL statement." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+	}
+	else {
+		cout << "Transaction inserted successfully." << endl;
+	}
+
+	// Free statement handle
+	SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+}
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+
+string transactionid = "TRX1262";
+string transactiondetail = "Deposit nf $500";
+int pincode = 43221;
+string accountnumber = "SBP1987238";
+// Assuming you have established a connection and have a valid SQLHANDLE named sqlConnectionHandle
+options.insertTransaction(sqlConnectionHandle, transactionid, transactiondetail, pincode, accountnumber);

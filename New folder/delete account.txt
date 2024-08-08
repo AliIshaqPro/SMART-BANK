@@ -1,0 +1,67 @@
+void deleteAccountByPincodeAndAccountNumber(SQLHANDLE& sqlConnectionHandle) {
+	// Declare variables
+	int pincode;
+	wstring accountNumber;
+
+	// Prompt user for pincode and account number
+	cout << "Enter pincode: ";
+	cin >> pincode;
+	cout << "Enter account number: ";
+	wcin.ignore(); // Ignore any previous newline character in the input buffer
+	getline(wcin, accountNumber);
+
+	// SQL query
+	wstring deleteSQL = L"DELETE FROM personalinformation WHERE pincode = ? AND accountnumber = ?";
+
+	// Declare handles and variables
+	SQLHANDLE sqlStatementHandle;
+	SQLRETURN retcode;
+
+	// Allocate statement handle
+	SQLAllocHandle(SQL_HANDLE_STMT, sqlConnectionHandle, &sqlStatementHandle);
+
+	// Prepare the SQL statement
+	retcode = SQLPrepareW(sqlStatementHandle, (SQLWCHAR*)deleteSQL.c_str(), SQL_NTS);
+	if (retcode != SQL_SUCCESS) {
+		cout << "Error preparing SQL statement." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+		return;
+	}
+
+	// Bind parameters to the statement
+	retcode = SQLBindParameter(sqlStatementHandle, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &pincode, 0, NULL);
+	if (retcode != SQL_SUCCESS) {
+		cout << "Error binding pincode parameter." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+		return;
+	}
+
+	retcode = SQLBindParameter(sqlStatementHandle, 2, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_VARCHAR, 0, 0, (SQLWCHAR*)accountNumber.c_str(), accountNumber.length() * sizeof(wchar_t), NULL);
+	if (retcode != SQL_SUCCESS) {
+		cout << "Error binding account number parameter." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+		return;
+	}
+
+	// Execute the SQL statement
+	retcode = SQLExecute(sqlStatementHandle);
+	if (retcode != SQL_SUCCESS) {
+		cout << "Error executing SQL statement." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+		return;
+	}
+
+	cout << "Account deleted successfully." << endl;
+
+	// Free statement handle
+	SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+}
+
+
+
+///////////////////////////////////////////////////////////////////////
+
+
+options.deleteAccountByPincodeAndAccountNumber(sqlConnectionHandle);
+
+

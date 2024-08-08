@@ -1,0 +1,67 @@
+
+
+
+
+
+
+	void displaypersonalinformation(SQLHANDLE& sqlConnectionHandle, wstring& columnName, wstring& columnValue) {
+		// Construct the SQL query dynamically based on user input
+		wstring selectSQL = L"SELECT * FROM `personalinformation` WHERE `" + columnName + L"` = ?";
+
+		SQLHANDLE sqlStatementHandle;
+		SQLRETURN retcode;
+
+		// Allocate statement handle
+		SQLAllocHandle(SQL_HANDLE_STMT, sqlConnectionHandle, &sqlStatementHandle);
+
+		// Prepare the SQL statement
+		retcode = SQLPrepareW(sqlStatementHandle, (SQLWCHAR*)selectSQL.c_str(), SQL_NTS);
+
+		// Bind parameter to the statement
+		SQLLEN valueLength = SQL_NTS;
+		retcode = SQLBindParameter(sqlStatementHandle, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)columnValue.c_str(), columnValue.length() * sizeof(wchar_t), &valueLength);
+
+		// Execute the SQL statement
+		retcode = SQLExecute(sqlStatementHandle);
+
+		// Fetch and display results
+		SQLLEN nameLength, dobLength, accounttypeLength, passwordLength, accountnumberLength;
+		SQLINTEGER idCardNumber{}, pincode{}, loan_amount{};
+		wchar_t name[256]{}, dob[256]{}, accounttype[256]{}, password[256]{}, email[256]{}, accountnumber[256]{};
+
+		while (SQLFetch(sqlStatementHandle) == SQL_SUCCESS) {
+			SQLGetData(sqlStatementHandle, 1, SQL_C_WCHAR, name, sizeof(name), &nameLength);
+			SQLGetData(sqlStatementHandle, 2, SQL_C_WCHAR, dob, sizeof(dob), &dobLength);
+			SQLGetData(sqlStatementHandle, 3, SQL_C_LONG, &idCardNumber, sizeof(idCardNumber), NULL);
+			SQLGetData(sqlStatementHandle, 4, SQL_C_WCHAR, accounttype, sizeof(accounttype), &accounttypeLength);
+			SQLGetData(sqlStatementHandle, 5, SQL_C_WCHAR, password, sizeof(password), &accountnumberLength);
+			SQLGetData(sqlStatementHandle, 6, SQL_C_WCHAR, password, sizeof(password), &passwordLength);
+			SQLGetData(sqlStatementHandle, 7, SQL_C_LONG, &pincode, sizeof(pincode), NULL);
+			SQLGetData(sqlStatementHandle, 8, SQL_C_WCHAR, accountnumber, sizeof(accountnumber), &accountnumberLength);
+
+			wcout << left << setw(20) << L"Name: " << name << endl
+				<< left << setw(20) << L"Date of Birth: " << dob << endl
+				<< left << setw(20) << L"ID Card Number: " << idCardNumber << endl
+				<< left << setw(20) << L"accounttype: " << accounttype << endl
+				<< left << setw(20) << L"Account Number: " << password << endl
+				<< left << setw(20) << L"EMAIL: " << email << endl
+				<< left << setw(20) << L"Password: " << password << endl
+				<< left << setw(20) << L"pincode: " << pincode << endl
+				<< left << setw(20) << L"Loan Amount: " << loan_amount << endl;
+		}
+
+		// Free statement handle
+		SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+	}
+
+
+
+
+
+//========================================================================
+wstring columnName = L"Name";
+wstring columnValue = L"John Doe";
+
+// Call the display function
+options.displaypersonalinformation(sqlConnectionHandle, columnName, columnValue);
+//////////////////////////////////////////////////////////////////////////////////////

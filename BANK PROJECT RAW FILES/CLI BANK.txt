@@ -1,0 +1,86 @@
+Certainly! Below are the Command Line Interface (CLI) interfaces for each section of your banking application. Each section includes menu options relevant to its function.
+
+### 1. Money Transfer
+```
+======== Money Transfer ========
+1. Transfer to Bank Account
+2. Transfer to Mobile Wallet
+3. International Transfer
+4. Transfer History
+5. Back to Main Menu
+================================
+Please select an option (1-5):
+```
+
+### 2. Mobile Load
+```
+======== Mobile Load ========
+1. Load Mobile Number
+2. Load History
+3. Back to Main Menu
+==============================
+Please select an option (1-3):
+```
+
+### 3. Bill Payments
+```
+======== Bill Payments ========
+1. Pay Utility Bills
+2. Pay Credit Card Bills
+3. Pay Internet Bills
+4. Pay TV Subscription
+5. Payment History
+6. Back to Main Menu
+================================
+Please select an option (1-6):
+```
+
+### 4. Payments
+```
+======== Payments ========
+1. Make a Payment
+2. Payment History
+3. Scheduled Payments
+4. Back to Main Menu
+===============================
+Please select an option (1-4):
+```
+
+### 5. Savings and Insurance
+```
+======== Savings and Insurance ========
+1. View Savings Account
+2. Open New Savings Account
+3. Insurance Plans
+4. Apply for Insurance
+5. Insurance Policy Details
+6. Back to Main Menu
+=======================================
+Please select an option (1-6):
+```
+
+### 6. My Account
+```
+======== My Account ========
+1. View Account Balance
+2. Account Statement
+3. Update Personal Information
+4. Change Password
+5. Back to Main Menu
+============================
+Please select an option (1-5):
+```
+
+### 7. Loan
+```
+======== Loan ========
+1. Apply for Loan
+2. Loan Status
+3. Loan Repayment
+4. Loan History
+5. Back to Main Menu
+======================
+Please select an option (1-5):
+```
+
+These CLI interfaces will guide the user through each section of your banking application, allowing them to navigate and perform various banking tasks efficiently.

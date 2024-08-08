@@ -1,0 +1,86 @@
+
+EMPLOYEE;
+
+
+Customer Management:
+Create new customer profiles
+Update customer information (e.g., address, contact details)
+Delete or deactivate customer profiles (if necessary)
+Verify customer identities and documentation
+Account Management:
+Open new accounts for customers
+Close or freeze existing accounts
+Modify account details (e.g., account type, account holder information)
+Handle account-related inquiries and issues raised by customers
+Transaction Management:
+Process customer transactions (e.g., deposits, withdrawals, transfers)
+Approve large or unusual transactions
+Investigate and resolve transaction discrepancies or errors
+Assist customers with transaction-related inquiries or concerns
+Loan Management:
+Review and evaluate loan applications from customers
+Approve or reject loan applications based on creditworthiness and risk assessment
+Provide guidance and advice to customers regarding loan options and terms
+Monitor loan accounts for timely payments and follow up on delinquent accounts
+Account Statements and Reporting:
+Generate account statements and reports for customers
+Analyze account activities and trends for fraud detection and risk management
+Prepare regulatory reports and compliance documentation
+Provide account-related reports and data to management for decision-making purposes
+Customer Support and Assistance:
+Assist customers with account-related inquiries, issues, and complaints
+Provide information and guidance on banking products and services
+Resolve customer disputes and escalate issues to higher levels of authority if necessary
+Offer personalized assistance and recommendations based on customer needs and preferences
+Security and Compliance:
+Enforce security protocols and procedures within the bank's operations
+Monitor and report suspicious activities or potential security breaches
+Ensure compliance with banking regulations and industry standards
+Conduct periodic audits and reviews of customer accounts and transactions for compliance purposes
+Administrative Tasks:
+Manage user accounts and permissions within the banking management system
+Perform system maintenance tasks and updates
+Assist with training new employees on system usage and procedures
+Handle administrative paperwork and documentation as required by bank policies and regulations
+
+
+
+
+CUSTOMER;;;
+
+
+Account Management:
+Create a new account
+Close an existing account
+Update account information (e.g., contact details, mailing address)
+View account details (e.g., account number, type, balance)
+Set up account preferences (e.g., overdraft protection, alerts)
+Transaction Management:
+Deposit funds into an account
+Withdraw funds from an account
+Transfer funds between accounts (own accounts or to other customers)
+Initiate external transfers (e.g., to another bank)
+Set up recurring transactions (e.g., automatic bill payments, scheduled transfers)
+Loan Management:
+Apply for a new loan (e.g., personal loan, mortgage, car loan)
+View existing loan details (e.g., loan type, balance, interest rate)
+Make loan payments (e.g., one-time payments, scheduled payments)
+Request loan extensions or modifications (if applicable)
+Account Statements and History:
+View account transaction history
+Generate account statements for specific time periods
+Download or print account statements
+Search and filter transactions by criteria (e.g., date range, transaction type)
+Messaging and Support:
+Send inquiries or messages to bank customer support
+Receive notifications about account activities (e.g., transaction alerts, account updates)
+Request assistance or support for account-related issues
+Security and Settings:
+Change login credentials (e.g., password, security questions)
+Set up multi-factor authentication (if supported)
+Manage notification preferences (e.g., email alerts, SMS notifications)
+Review security features and tips for protecting account information
+Additional Services:
+Purchase additional banking products or services (e.g., credit cards, insurance)
+Access financial planning tools or resources
+Participate in loyalty programs or rewards programs (if offered)

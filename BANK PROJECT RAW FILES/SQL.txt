@@ -1,0 +1,154 @@
+Sure, let's go through each SQL command and clause along with their proper usage:
+
+### Data Definition Language (DDL):
+1. **CREATE**: 
+   - **Usage**: To create new database objects like tables, indexes, or views.
+   - **Example**: `CREATE TABLE table_name (column1 datatype, column2 datatype, ...);`
+   
+2. **ALTER**:
+   - **Usage**: To modify existing database objects like tables or columns.
+   - **Example**: `ALTER TABLE table_name ADD column_name datatype;`
+   
+3. **DROP**:
+   - **Usage**: To delete existing database objects like tables, indexes, or views.
+   - **Example**: `DROP TABLE table_name;`
+
+4. **TRUNCATE**:
+   - **Usage**: To delete all rows from a table without deleting the table structure.
+   - **Example**: `TRUNCATE TABLE table_name;`
+
+5. **RENAME**:
+   - **Usage**: To rename an existing database object like a table or a column within a table.
+   - **Example**: `ALTER TABLE table_name RENAME TO new_table_name;`
+
+### Data Manipulation Language (DML):
+1. **SELECT**:
+   - **Usage**: To retrieve data from one or more tables.
+   - **Example**: `SELECT column1, column2 FROM table_name WHERE condition;`
+
+2. **INSERT**:
+   - **Usage**: To add new rows of data into a table.
+   - **Example**: `INSERT INTO table_name (column1, column2) VALUES (value1, value2);`
+
+3. **UPDATE**:
+   - **Usage**: To modify existing data in a table.
+   - **Example**: `UPDATE table_name SET column1 = new_value WHERE condition;`
+
+4. **DELETE**:
+   - **Usage**: To remove rows from a table based on specified conditions.
+   - **Example**: `DELETE FROM table_name WHERE condition;`
+
+5. **MERGE**:
+   - **Usage**: To perform insert, update, or delete operations on a target table based on a source table.
+   - **Example**: `MERGE INTO target_table USING source_table ON condition WHEN MATCHED THEN UPDATE SET ... WHEN NOT MATCHED THEN INSERT ...;`
+
+### Data Query Language (DQL):
+1. **SELECT**:
+   - **Usage**: To retrieve data from one or more tables.
+   - **Example**: `SELECT column1, column2 FROM table_name WHERE condition;`
+
+2. **FROM**:
+   - **Usage**: Specifies the table(s) from which to retrieve data in a SELECT statement.
+   - **Example**: `SELECT column1, column2 FROM table_name;`
+
+3. **WHERE**:
+   - **Usage**: To filter records based on specified conditions in a SELECT statement.
+   - **Example**: `SELECT column1, column2 FROM table_name WHERE condition;`
+
+4. **DISTINCT**:
+   - **Usage**: To retrieve unique values from a column in a SELECT statement.
+   - **Example**: `SELECT DISTINCT column_name FROM table_name;`
+
+5. **GROUP BY**:
+   - **Usage**: To group rows with the same values into summary rows in a SELECT statement.
+   - **Example**: `SELECT column1, COUNT(*) FROM table_name GROUP BY column1;`
+
+6. **HAVING**:
+   - **Usage**: To filter grouped rows in a SELECT statement.
+   - **Example**: `SELECT column1, COUNT(*) FROM table_name GROUP BY column1 HAVING COUNT(*) > 1;`
+
+7. **ORDER BY**:
+   - **Usage**: To sort the result set of a SELECT statement.
+   - **Example**: `SELECT column1, column2 FROM table_name ORDER BY column1 ASC|DESC;`
+
+8. **LIMIT**:
+   - **Usage**: To constrain the number of rows returned by a SELECT statement.
+   - **Example**: `SELECT column1, column2 FROM table_name LIMIT number_of_rows;`
+
+9. **JOIN**:
+   - **Usage**: To combine rows from two or more tables based on a related column between them.
+   - **Example**: `SELECT column1, column2 FROM table1 INNER JOIN table2 ON table1.column_name = table2.column_name;`
+
+10. **UNION**:
+    - **Usage**: To combine the results of two or more SELECT statements into a single result set.
+    - **Example**: `SELECT column1 FROM table1 UNION SELECT column2 FROM table2;`
+
+### Data Control Language (DCL):
+1. **GRANT**:
+   - **Usage**: To grant permissions to users or roles on specific database objects.
+   - **Example**: `GRANT SELECT ON table_name TO user_name;`
+
+2. **REVOKE**:
+   - **Usage**: To revoke previously granted permissions from users or roles on specific database objects.
+   - **Example**: `REVOKE SELECT ON table_name FROM user_name;`
+
+### Transaction Control Language (TCL):
+1. **COMMIT**:
+   - **Usage**: To save changes made during the current transaction.
+   - **Example**: `COMMIT;`
+
+2. **ROLLBACK**:
+   - **Usage**: To undo changes made during the current transaction and restore the database to its state before the transaction began.
+   - **Example**: `ROLLBACK;`
+
+3. **SAVEPOINT**:
+   - **Usage**: To set a savepoint within a transaction, allowing rollback to that point.
+   - **Example**: `SAVEPOINT savepoint_name;`
+
+4. **SET TRANSACTION**:
+   - **Usage**: To specify transaction characteristics such as isolation level.
+   - **Example**: `SET TRANSACTION ISOLATION LEVEL READ COMMITTED;`
+
+### Miscellaneous:
+1. **LIKE**:
+   - **Usage**: To search for a specified pattern in a column.
+   - **Example**: `SELECT column1 FROM table_name WHERE column1 LIKE 'pattern%';`
+
+2. **IN**:
+   - **Usage**: To specify multiple values in a WHERE clause.
+   - **Example**: `SELECT column1 FROM table_name WHERE column1 IN (value1, value2, ...);`
+
+3. **BETWEEN**:
+   - **Usage**: To select values within a specified range in a WHERE clause.
+   - **Example**: `SELECT column1 FROM table_name WHERE column1 BETWEEN value1 AND value2;`
+
+4. **NULL**:
+   - **Usage**: To select rows with NULL values in a WHERE clause.
+   - **Example**: `SELECT column1 FROM table_name WHERE column1 IS NULL;`
+
+5. **COUNT**:
+   - **Usage**: To count the number of rows in a result set or the number of occurrences of a value in a column.
+   - **Example**: `SELECT COUNT(*) FROM table_name;`
+
+6. **SUM, AVG, MIN, MAX**:
+   - **Usage**: To perform calculations on numeric data in a result set.
+   - **Example**: `SELECT SUM(column1), AVG(column2), MIN(column3), MAX(column4) FROM table_name;`
+
+7. **CASE**:
+   - **Usage**: To add conditional logic to a query, allowing you to return different values based on specified conditions.
+   - **Example**: `SELECT column1, CASE WHEN condition1 THEN result1 ELSE result2 END AS result FROM table_name;`
+
+Understanding these commands and their proper usage is essential for effectively managing and querying data
+
+ in SQL databases.
+
+
+ALTER TABLE Employee
+ADD FOREIGN KEY(Branch_id)
+REFERENCES Branch(Branch_id)
+ON DELETE SET NULL;
+
+ALTER TABLE Employee
+ADD FOREiGN KEY(Super_id)
+REFERENCES Employee(Emp_id)
+ON DELETE SET NULL; 

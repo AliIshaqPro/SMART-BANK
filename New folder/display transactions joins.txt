@@ -1,0 +1,67 @@
+void displaytransactions(SQLHANDLE& sqlConnectionHandle) {
+	// Get the pincode from the user
+	int userPincode;
+	cout << "Enter the pincode: ";
+	cin >> userPincode;
+
+	// Convert pincode to wstring
+	wstring wPincode = to_wstring(userPincode);
+
+	// SQL query
+	wstring query =
+		L"SELECT p.Name, p.CNIC, t.transactionid, t.transactiondetail, t.pincode, t.accountnumber FROM personalinformation p JOIN accountmgt a ON p.accountnumber = a.accountnumber AND p.pincode = a.pincode JOIN transactions t ON a.accountnumber = t.accountnumber AND a.pincode = t.pincode WHERE p.pincode = " + wPincode;
+
+	// Allocate statement handle
+	SQLHANDLE sqlStatementHandle;
+	SQLAllocHandle(SQL_HANDLE_STMT, sqlConnectionHandle, &sqlStatementHandle);
+
+	// Prepare the SQL statement
+	SQLRETURN retcode = SQLPrepareW(sqlStatementHandle, (SQLWCHAR*)query.c_str(), SQL_NTS);
+	if (retcode != SQL_SUCCESS) {
+		cout << "Error preparing SQL statement." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+		SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+		return;
+	}
+
+	// Execute the SQL statement
+	retcode = SQLExecute(sqlStatementHandle);
+	if (retcode != SQL_SUCCESS) {
+		cout << "Error executing SQL statement." << endl;
+		showSQLError(SQL_HANDLE_STMT, sqlStatementHandle);
+	}
+	else {
+		// Bind columns to variables
+		SQLCHAR name[100], cnic[100], transactionid[100], transactiondetail[500], accountnumber[100];
+		SQLINTEGER pincode;
+
+		SQLBindCol(sqlStatementHandle, 1, SQL_C_CHAR, name, sizeof(name), NULL);
+		SQLBindCol(sqlStatementHandle, 2, SQL_C_CHAR, cnic, sizeof(cnic), NULL);
+		SQLBindCol(sqlStatementHandle, 3, SQL_C_CHAR, transactionid, sizeof(transactionid), NULL);
+		SQLBindCol(sqlStatementHandle, 4, SQL_C_CHAR, transactiondetail, sizeof(transactiondetail), NULL);
+		SQLBindCol(sqlStatementHandle, 5, SQL_C_SLONG, &pincode, 0, NULL);
+		SQLBindCol(sqlStatementHandle, 6, SQL_C_CHAR, accountnumber, sizeof(accountnumber), NULL);
+
+		// Fetch and display the results
+		while (SQLFetch(sqlStatementHandle) == SQL_SUCCESS) {
+			cout << "Name: " << name << endl;
+			cout << "CNIC: " << cnic << endl;
+			cout << "Transaction ID: " << transactionid << endl;
+			cout << "Transaction Detail: " << transactiondetail << endl;
+			cout << "Pincode: " << pincode << endl;
+			cout << "Account Number: " << accountnumber << endl;
+			cout << endl;
+		}
+	}
+
+	// Free statement handle
+	SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+
+options.displaytransactions(sqlConnectionHandle);

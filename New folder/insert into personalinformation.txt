@@ -1,0 +1,103 @@
+bool create_account(SQLHANDLE& sqlConnectionHandle, wstring& name, wstring& dob, SQLINTEGER idCardNumber, wstring& accounttype, wstring& password, SQLINTEGER pincode, wstring& accountnumber) {
+	SQLWCHAR* insertSQL = (SQLWCHAR*)L"INSERT INTO `personalinformation` (`Name`, `dateofbirth`, `CNIC`, `accounttype`, `password`, `pincode`, `accountnumber`) VALUES (?, ?, ?, ?, ?, ?, ?)";
+	SQLHANDLE sqlStatementHandle;
+	SQLRETURN retcode;
+
+	// Allocate statement handle
+	retcode = SQLAllocHandle(SQL_HANDLE_STMT, sqlConnectionHandle, &sqlStatementHandle);
+	if (retcode != SQL_SUCCESS) {
+		wcerr << L"Failed to allocate statement handle." << endl;
+		return false;
+	}
+
+	// Prepare the SQL statement
+	retcode = SQLPrepareW(sqlStatementHandle, insertSQL, SQL_NTS);
+	error();
+
+	// Bind parameters to the statement
+	SQLLEN nameLength = SQL_NTS;
+	SQLLEN dobLength = SQL_NTS;
+	SQLLEN accounttypeLength = SQL_NTS;
+	SQLLEN passwordLength = SQL_NTS;
+	SQLLEN accountnumberLength = SQL_NTS;
+
+	retcode = SQLBindParameter(sqlStatementHandle, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)name.c_str(), name.length() * sizeof(wchar_t), &nameLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 2, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)dob.c_str(), dob.length() * sizeof(wchar_t), &dobLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 3, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &idCardNumber, 0, NULL);
+	retcode = SQLBindParameter(sqlStatementHandle, 4, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)accounttype.c_str(), accounttype.length() * sizeof(wchar_t), &accounttypeLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 5, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)password.c_str(), password.length() * sizeof(wchar_t), &passwordLength);
+	retcode = SQLBindParameter(sqlStatementHandle, 6, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &pincode, 0, NULL);
+	retcode = SQLBindParameter(sqlStatementHandle, 7, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WVARCHAR, 0, 0, (SQLPOINTER)accountnumber.c_str(), accountnumber.length() * sizeof(wchar_t), &accountnumberLength);
+
+	// Check retcode after each SQLBindParameter call for error handling
+
+	// Execute the SQL statement
+	retcode = SQLExecute(sqlStatementHandle);
+	error();
+
+	// Free statement handle
+	SQLFreeHandle(SQL_HANDLE_STMT, sqlStatementHandle);
+	return true;
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+accountnumbercount++;
+//int accountnumbercount = 0; // Initialize the account number count
+options.writeAccountNumberCount(accountnumbercount);
+ // Increment account number count
+wstringstream ss;
+ss << L"SBP" << accountnumbercount;
+wstring accountnumber = ss.str();
+accountsmt = L"null";
+balance = 10000;
+
+wcout << L"Please Enter Your Name: ";
+wcin.ignore(); // Ignore the newline character in the input buffer
+getline(wcin, name);
+
+wcout << L"Please Enter Your Date of Birth (YYYY-MM-DD): ";
+getline(wcin, dob);
+
+wcout << L"Please Enter Your CNIC (Only Numeric) : ";
+wcin >> idCardNumber;
+
+wcin.ignore(); // Ignore the newline character in the input buffer
+wcout << L"Please Enter Your Account Type: ";
+getline(wcin, accounttype);
+
+wcout << L"Please Enter Your Password: ";
+getline(wcin, password);
+
+wcout << L"Please Enter Your pincode: ";
+wcin >> pincode;
+
+//wcout << L"Please Enter The Purpose of Account creation : ";
+//getline(wcin, accountsmt);
+
+// Call the function to insert values into accountmgt table
+if (options.accountmgt(sqlConnectionHandle,  accountnumber,  pincode, accountsmt, balance)) {
+				// Call the function to insert values into personalinformation table
+				if (options.create_account(sqlConnectionHandle, name, dob, idCardNumber, accounttype, password, pincode, accountnumber)) {
+					wcout << L"Your Profile Has Been Created With the Following Details:" << endl;
+					wcout << L"Name: " << name << endl;
+					wcout << L"Date of Birth: " << dob << endl;
+					wcout << L"CNIC: " << idCardNumber << endl;
+					wcout << L"Account Type: " << accounttype << endl;
+					wcout << L"Account Number: " << accountnumber << endl;
+					wcout << L"Password: " << password << endl;
+					wcout << L"Pincode: " << pincode << endl;
+					wcout << L"balance: " << balance << endl;
+				}
+				else {
+					wcerr << L"Failed to create account." << endl;
+				}
+}
+else {
+				wcerr << L"Failed to insert into accountmgt." << endl;
+}
